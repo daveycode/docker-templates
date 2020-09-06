@@ -1,0 +1,52 @@
+version: '3.7'
+services:
+    nginx:
+        image: nginx
+        ports: 
+            - "${NGINX_PORT}:80"
+        volumes:
+            - ./app:${NGINX_DOCUMENT_ROOT}:ro
+            - ./nginx/templates:/etc/nginx/templates
+        environment:
+            - NGINX_HOST=${NGINX_HOST}
+            - NGINX_PORT=${NGINX_PORT}
+            - NGINX_DOCUMENT_ROOT=${NGINX_DOCUMENT_ROOT}
+        networks: 
+            - app
+        depends_on: 
+            - php
+
+    php:
+        image: devilbox/php-fpm:7.4-work
+        volumes:
+            - ./app:${NGINX_DOCUMENT_ROOT}
+        networks: 
+            - app
+
+    mysql:
+        image: mysql:5.7
+        environment:
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+        volumes: 
+            - db-data:/var/lib/mysql/
+        networks:
+            - app
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        ports: 
+            - 8000:80
+        environment: 
+            - PMA_PORT=3306
+            - PMA_HOST=${PMA_HOST}
+        networks: 
+            - app
+networks: 
+    app:
+
+volumes: 
+    db-data:
+        driver: local
